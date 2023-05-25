@@ -1,0 +1,15 @@
+# Publish all joint states -----------------------------------
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50  
+
+# Position Controllers ---------------------------------------
+yaw_joint_position_controller:
+  type: effort_controllers/JointPositionController
+  joint: livox_yaw_joint
+  pid: {p: 1000, i: 0.00, d: 0}
+
+pitch_joint_position_controller:
+  type: effort_controllers/JointPositionController
+  joint: livox_pitch_joint
+  pid: {p: 1000, i: 1.00, d: 0}

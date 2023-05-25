@@ -1,0 +1,12 @@
+obstacle_range: 10
+raytrace_range: 10
+
+footprint: [[-0.205, -0.155], [-0.205, 0.155], [0.077, 0.155], [0.077, -0.155]]
+#robot_radius: 0.17
+
+inflation_radius: 1.0
+cost_scaling_factor: 2.0
+
+map_type: costmap
+observation_sources: livox_pc
+livox_pc: {sensor_frame: livox, data_type: PointCloud2, topic: /livox/lidar_pointcloud2, marking: true, clearing: true, min_obstacle_height: 0.2, max_obstacle_height: 2}

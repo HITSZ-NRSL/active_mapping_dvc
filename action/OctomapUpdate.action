@@ -1,0 +1,6 @@
+---
+# result
+int32 total_new_voxel_num
+---
+# feedback
+int32[] new_voxel_num

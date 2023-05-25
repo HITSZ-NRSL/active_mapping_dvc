@@ -1,0 +1,56 @@
+<launch>
+  <arg name="world" default="$(find active_mapping)/worlds/house3e.world" />		
+
+  <arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="x_pos" default="2"/>
+  <arg name="y_pos" default="-8"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="roll" default="0"/>
+  <arg name="pitch" default="0"/>
+  <arg name="yaw" default="1.57"/>
+  
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find active_mapping)/urdf/mr1000_motor.urdf.xacro'"/>
+	<arg name="use_gt" default="true" />
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <node name="spawn_model" pkg="gazebo_ros" type="spawn_model" output="screen" 
+        args="-urdf -param robot_description -model mr1000 
+				-x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -Y $(arg yaw)" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <remap from="joint_states" to="robot_joint_states"/>
+    <rosparam param="source_list">["/gimbal_lidar/joint_states"]</rosparam>
+  </node> 
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />    
+  </node>
+  
+  <!-- controller_manager -->
+	<rosparam command="load" file="$(find active_mapping)/config/base_control.yaml" />
+  <node name="base_controller_spawner" pkg="controller_manager" type="spawner"
+      args="mr1000_joint_publisher mr1000_velocity_controller">
+  </node>
+
+  <rosparam file="$(find active_mapping)/config/gimbal_gazebo_control.yaml" command="load"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="true"
+ 	      args="joint_state_controller yaw_joint_position_controller pitch_joint_position_controller"/>
+
+  <node name="livox_custom_msg_converter" pkg="active_mapping" type="livox_custom_msg_converter" output="screen"/>
+  <!-- <node name="point_cloud_converter_node" pkg="point_cloud_converter" type="point_cloud_converter_node"
+  		 args="points_in:=/livox/lidar  points2_out:=/livox/lidar_pointcloud2"/> -->
+		 <!-- "points2_in:=/livox/lidar  points_out:=/livox/lidar_pointcloud2" -->
+
+  <group if="$(arg use_gt)">
+    <node name="odom_to_tf_node" pkg="active_mapping" type="odom_to_tf_node" output="screen">
+      <param name="publish_tf" type="bool" value = "true"/>
+    </node>
+  </group>
+</launch>

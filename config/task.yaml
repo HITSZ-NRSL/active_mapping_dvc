@@ -1,0 +1,73 @@
+## ROS parameters
+lidar_topic: /livox/lidar_pointcloud2
+odom_topic: /odometry_lio
+world_frame: map
+lidar_frame: livox
+odom_frame: odom_lio
+base_frame: base_footprint
+move_base_goal_topic: /move_base_simple/goal
+move_base_status_topic: /move_base/status
+sensor_controller_topic: /crank_lidar/crank_joint_position_controller/command
+
+## Active mapping paramters
+rotate_for_initialization: true
+lidar_crank_joint: livox_base_joint
+lidar_tf_dt: -0.01
+use_disjoint_set: true
+
+gimbal_controller:
+  type: 1 
+  pitch_controller_topic: /gimbal_lidar/pitch_joint_position_controller/command
+  yaw_controller_topic: /gimbal_lidar/yaw_joint_position_controller/command
+
+world_representation:
+  octree_resolution: 0.2
+  octree_frame: map
+  octree_hit_probability: 0.7
+  octree_miss_probability: 0.4
+  min_sensor_dist: 0.2
+  max_sensor_dist: 20
+  publish_octree: true
+  publish_frequency: 5
+  ground_height: 0.3
+  fov_horizon: 81.7
+  fov_vertical: 25.1
+  roi_x_max: 24  
+  roi_x_min: -10 
+  roi_y_max: 19
+  roi_y_min: -14 
+  roi_z_max: 50
+  roi_z_min: -0.5
+  visualize_roi: true
+  visualize_update_bbox: true
+
+frontier_view_space_finder:
+  display_frontier_voxels: true
+  max_cluster_xyz: 0.8
+  min_cluster_size: 5
+  roi_min_z: 0.2
+  view_min_dist_from_object: 2
+  yaw_step: 0.2
+  radius_step: 1.5
+  radius_min: 6
+  radius_max: 15 
+  max_pitch: 1.57
+  min_pitch: -1.57 
+
+sample_viewpoints:
+  sample_same_point: false 
+  enable_frontier_chk: true 
+  enable_raycast_chk: true 
+  planning_times: 5
+  resample_times: 40
+  pitch_upper_bound: 65
+  pitch_interval: 10
+  yaw_upper_bound: 65
+  yaw_interval: 20
+  min_seq_length: 2
+  sample_weight: 1
+  gap_size: 2 
+  samp_roi_res: 2 
+  samp_roi_size: 7
+  vote_angle_th: 40
+  vote_dis_th: 20

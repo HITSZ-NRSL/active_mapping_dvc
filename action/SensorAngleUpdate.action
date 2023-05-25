@@ -1,0 +1,10 @@
+#goal definition
+float32 angle
+# 0 for yaw 1 for pitch
+int32 type 
+---
+#result definition
+float32 residual_angle
+---
+#feedback 
+float32[] angle_sequnce

@@ -1,0 +1,3 @@
+GlobalPlanner:
+  # Astar method seems to have bugs so that it find no path.
+  use_dijkstra: True 

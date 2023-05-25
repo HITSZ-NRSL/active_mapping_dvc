@@ -1,0 +1,36 @@
+<launch>
+	<arg name="model" default="waffle_pi" doc="model type [burger, waffle, waffle_pi]"/>
+    <arg name="map_file" default="$(find active_mapping)/maps/map.yaml"/>
+    <arg name="open_rviz" default="true"/>
+    <arg name="move_forward_only" default="false"/>
+	<arg name="cmd_vel_topic" default="mr1000_velocity_controller/cmd_vel" /> 
+	<arg name="odom_topic" default="odometry_gt" />
+
+    <!-- Map server -->
+    <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+  	<!-- move_base -->
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base">
+		<param name="base_local_planner"  value="teb_local_planner/TebLocalPlannerROS" />
+		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
+		<rosparam file="$(find active_mapping)/config/move_base/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find active_mapping)/config/move_base/local_costmap_params.yaml" command="load" />
+		<rosparam file="$(find active_mapping)/config/move_base/global_costmap_params.yaml" command="load" />
+		<rosparam file="$(find active_mapping)/config/move_base/move_base_params.yaml" command="load" />
+		<rosparam file="$(find active_mapping)/config/move_base/teb_local_planner_params_waffle_pi.yaml" command="load" />
+		<rosparam file="$(find active_mapping)/config/move_base/global_planner_params.yaml" command="load" />
+		<remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+		<remap from="odom" to="$(arg odom_topic)"/>
+	</node>
+
+	
+    <node name="active_mapping" pkg="active_mapping" type="active_mapping_task" output="screen">
+        <rosparam file="$(find active_mapping)/config/task.yaml" command="load"/>
+		<remap from="cmd_vel" to="mr1000_velocity_controller/cmd_vel"/> 
+		<remap from="/gimbal_lidar/pitch_joint_position_controller/command" to="pitch_joint_position_controller/command"/> 
+		<remap from="/gimba_lidar/yaw_joint_position_controller/command" to="yaw_joint_position_controller/command"/> 
+    </node>
+	<node pkg="tf" type="static_transform_publisher" name="odom_to_map_broadcaster" args="0 0 0 0 0 0 odom_lio map  10" /> 
+
+    <node name="rviz1" pkg="rviz" type="rviz" args="-d $(find active_mapping)/rviz/active_mapping.rviz"/>
+</launch>

@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="mr1000">
+
+	<xacro:arg name="robot_namespace" default="/" />
+	<xacro:arg name="gpu" default="false"/>
+	<xacro:property name="gpu" value="$(arg gpu)" />
+
+	<!-- Wheel Properties -->
+	<xacro:property name="wheel_length" value="0.1143" />
+	<xacro:property name="wheel_radius" value="0.1651" /> 
+
+	<!-- Wheel Mounting Positions -->
+	<xacro:property name="wheelbase" value="0.4885" /> <!-- distance betwee front wheel and rear wheel -->
+	<xacro:property name="track" value="0.5347" />  <!-- separation between left wheel and right wheel: 0.1143 + 0.4204 = 0.5347-->
+	<xacro:property name="wheel_vertical_offset" value="0.04" />
+
+	<!-- Base Size -->
+	<xacro:property name="base_x_size" value="0.866" />
+	<xacro:property name="base_y_size" value="0.400" />
+	<xacro:property name="base_z_size" value="0.2165" />
+	<xacro:property name="M_PI" value="3.14159"/>
+	<xacro:property name="base_box1_height" value="0.2"/>
+	<xacro:property name="base_box2_height" value="0.15"/>
+	<xacro:property name="yaw_cylinder_height" value="0.2"/>
+	<xacro:property name="yaw_cylinder_radius" value="0.04"/>
+
+	<!-- Lidar Config -->
+	<xacro:property name="LiDARName" value="rslidar80" />
+	<xacro:property name="topicName" value="rslidar80_points" />
+	<xacro:property name="frameName" value="rslidar80_frame" />
+	<xacro:property name="min_range" value="0.9" />
+	<xacro:property name="max_range" value="130.0" />
+	<xacro:property name="samples" value="440"/>
+	<xacro:property name="hz" value="10" />
+	<xacro:property name="gaussianNoise" value="0.008" />
+
+	<!-- Included URDF/XACRO Files -->
+	<xacro:include filename="$(find active_mapping)/urdf/wheel.urdf.xacro" />
+	<!-- Base link is the center of the robot's base -->
+	<link name="base_link">
+		<inertial>
+			<origin  xyz="0.0083361 0.00033765 0.10648" rpy="0 0 0" />
+			<mass value="13.336" />
+			<inertia ixx="0.12049" ixy="5.9344E-06" ixz="-0.001006" iyy="0.32804" iyz="-7.8809E-07" izz="0.41342" />
+		</inertial>
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="package://active_mapping/meshes/base_linkm.STL" />
+			</geometry>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+			</geometry>
+		</collision>
+	</link>
+	<gazebo reference="base_link">                   
+		<material>Gazebo/Yellow</material>
+	</gazebo>
+
+
+	<!-- Base box1 -->
+	<link name="base_box1_link">
+		<inertial>
+			<origin  xyz="0 0 0" rpy="0 0 0" />
+			<mass value="1" /> 
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" /> 	
+		</inertial>
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="0.35 0.5 ${base_box1_height}"/>
+			</geometry>
+		</visual>
+	</link>
+	<joint name="base_box1_joint" type="fixed">
+		<origin xyz="0 0 ${base_z_size + base_box1_height/2}" rpy="0 0 0" /> <!-- base_height(0.216) + box_height/2-->
+		<parent link="base_link" />
+		<child link="base_box1_link" />
+	</joint>
+	<gazebo reference="base_box1_link">                   
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<!-- Base box2 -->
+	<link name="base_box2_link">
+		<inertial>
+			<origin  xyz="0 0 0" rpy="0 0 0" />
+			<mass value="1" /> 
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" /> 	
+		</inertial>
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="0.20 0.20 ${base_box2_height}"/>
+			</geometry>
+		</visual>
+	</link>
+	<joint name="box1_box2_joint" type="fixed">
+		<origin xyz="0 0 ${base_box1_height/2+base_box2_height/2}" rpy="0 0 0" /> <!-- box1_height(0.22) + box2_height/2-->
+		<parent link="base_box1_link" />
+		<child link="base_box2_link" />
+	</joint>
+	<gazebo reference="base_box2_link">                   
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+
+	<!-- Base footprint is on the ground under the robot -->
+	<link name="base_footprint"/>
+	<joint name="base_footprint_joint" type="fixed">
+		<origin xyz="0 0 ${wheel_vertical_offset - wheel_radius}" rpy="0 0 0" />
+		<parent link="base_link" />
+		<child link="base_footprint" />
+	</joint>
+
+	<!-- Wheel links generated from macros -->
+	<xacro:mr1000_wheel wheel_prefix="front_left">
+		<origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+	</xacro:mr1000_wheel>
+	<xacro:mr1000_wheel wheel_prefix="front_right">
+		<origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+	</xacro:mr1000_wheel>
+	<xacro:mr1000_wheel wheel_prefix="rear_left">
+		<origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+	</xacro:mr1000_wheel>
+	<xacro:mr1000_wheel wheel_prefix="rear_right">
+		<origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+	</xacro:mr1000_wheel>
+<!-- Yaw Cylinder -->
+	<link name="lidar_yaw_link">
+		<inertial>
+			<origin  xyz="0 0 0" rpy="0 0 0" />
+			<mass value="1" /> 
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" /> 	
+		</inertial>
+		<visual>
+			<origin xyz="0 0 ${yaw_cylinder_height*4/5/2}" rpy="0 0 0" />
+			<geometry>
+			    <box size="${yaw_cylinder_radius*2} ${yaw_cylinder_radius*2}  ${yaw_cylinder_height*4/5}"/>
+				<!-- <cylinder length="${yaw_cylinder_height*3/4}" radius="${yaw_cylinder_radius}" /> -->
+			</geometry>
+		</visual>
+		<visual>
+			<origin xyz="0 0 ${yaw_cylinder_height-yaw_cylinder_radius}" rpy="0 0 0" />
+			<geometry>
+				<sphere radius="${yaw_cylinder_radius}" />
+			</geometry>
+		</visual>
+	</link>
+	<joint name="livox_yaw_joint" type="revolute">
+		<origin xyz="0 0 ${base_box2_height/2}" rpy="0 0 0" /> <!-- box2_height + yaw_cylinder_height/2-->
+		<axis xyz="0 0 1" rpy="0 0 0" />
+		<dynamics damping="0.5" friction="0.06"/>
+    	<limit effort="300" velocity="0.2" lower="-1.57" upper="1.57"/>
+		<parent link="base_box2_link" />
+		<child link="lidar_yaw_link" />
+	</joint>
+	<gazebo reference="lidar_yaw_link">                   
+		<material>Gazebo/Black</material>
+	</gazebo>
+	<transmission name="lidar_yaw_trans">
+		<type>transmission_interface/SimpleTransmission</type>
+		<joint name="livox_yaw_joint">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+		</joint> 
+		<actuator name="lidar_yaw_motor">
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+	</transmission>
+
+
+
+
+	<!-- Pitch Cylinder -->
+	<link name="lidar_pitch_link">
+		<inertial>
+			<origin  xyz="0 0 0" rpy="0 0 0" />
+			<mass value="1" /> 
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" /> 	
+		</inertial>
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<cylinder length="0.18" radius="0.005" />
+			</geometry>
+		</visual>
+	</link>
+
+	<joint name="livox_pitch_joint" type="revolute">
+		<origin xyz="0 0 ${yaw_cylinder_height}" rpy="0 0 0" /> 
+		<axis xyz="0 1 0" rpy="0 0 0" />
+		<dynamics damping="0.5" friction="0.06"/>
+    	<limit effort="300" velocity="0.2" lower="-1.57" upper="1.57"/>
+		<parent link="lidar_yaw_link" />
+		<child link="lidar_pitch_link" />
+	</joint>
+	<gazebo reference="lidar_pitch_link">                   
+		<material>Gazebo/White</material>
+	</gazebo>
+	<transmission name="lidar_pitch_trans">
+		<type>transmission_interface/SimpleTransmission</type>
+		<joint name="livox_pitch_joint">
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+		</joint> 
+		<actuator name="lidar_pitch_motor">
+			<mechanicalReduction>1</mechanicalReduction>
+		</actuator>
+	</transmission>
+
+	<!-- Sensor Board -->
+	<link name="sensor_board_link">
+		<inertial>
+			<origin  xyz="0 0 0" rpy="0 0 0" />
+			<mass value="1" /> 
+			<inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0" /> 	
+		</inertial>
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<box size="0.170 0.170 0.01"/>
+			</geometry>
+		</visual>
+	</link>
+	<joint name="pitch_board_joint" type="fixed">
+		<origin xyz="0 0 0" rpy="0 0 0" /> 
+		<parent link="lidar_pitch_link" />
+		<child link="sensor_board_link" />
+	</joint>
+	<gazebo reference="sensor_board_link">                   
+		<material>Gazebo/Gray</material>
+	</gazebo>
+
+	<xacro:include filename="$(find livox_laser_simulation)/urdf/livox_horizon.xacro"/>
+	<xacro:Livox_Horizon name="livox" visualize="true" publish_pointcloud_type="3" downsample="4" ros_topic="livox/lidar"/>
+
+	<joint name="board_livox_joint" type="fixed">
+		<origin xyz="0.07 0.00 0.05" rpy="0 0 0" /> 
+		<parent link="sensor_board_link" />
+		<child link="livox_base" />
+	</joint>
+
+	<!-- Gazebo differentiate controller -->
+	<gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+			<robotNamespace>$(arg robot_namespace)</robotNamespace>
+			<legacyModeNS>true</legacyModeNS>
+			<robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+		</plugin>
+	</gazebo>
+
+	<!-- Gazebo gps controller -->
+	<gazebo>
+		<!-- odom ground truth -->
+		<plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+				<alwaysOn>true</alwaysOn>
+				<updateRate>100.0</updateRate>
+				<bodyName>livox_base</bodyName>
+				<topicName>/odometry_gt</topicName>
+				<gaussianNoise>0.00</gaussianNoise>
+				<frameName>map</frameName>
+				<xyzOffsets>0 0 0</xyzOffsets>
+				<rpyOffsets>0 0 0</rpyOffsets>
+		</plugin>
+	</gazebo>
+	
+</robot>

@@ -1,0 +1,5 @@
+geometry_msgs/Point origin
+geometry_msgs/Point target
+---
+float64 distance
+bool status
